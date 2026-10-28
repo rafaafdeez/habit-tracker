@@ -1,0 +1,1960 @@
+<!doctype html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HabitPulse - Cloud Habit Tracker</title>
+
+  <!-- PWA & Mobile Native Integration -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0a0a0c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Hábitos" />
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3209/3209995.png" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  />
+</head>
+
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              heading: ["Outfit", "sans-serif"],
+            },
+            colors: {
+              darkbg: "#0a0a0c",
+              cardbg: "#121215",
+              cardborder: "#222226",
+              zincmuted: "#a1a1aa",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      body {
+        background-color: #0a0a0c;
+        color: #f4f4f5;
+      }
+
+      .matte-card {
+        background-color: #121215;
+        border: 1px solid #222226;
+      }
+
+      .matte-card-hover {
+        transition: all 0.2s ease-in-out;
+      }
+      .matte-card-hover:hover {
+        border-color: #3f3f46;
+        transform: translateY(-1px);
+      }
+
+      /* Custom scrollbars */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0a0a0c;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #27272a;
+        border-radius: 9999px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #3f3f46;
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen flex flex-col font-sans text-zinc-200 antialiased pb-20 md:pb-12"
+  >
+    <!-- TOP HEADER -->
+    <header
+      class="sticky top-0 z-40 bg-[#0a0a0c]/90 backdrop-blur-md border-b border-zinc-800/80 px-4 lg:px-8 py-3.5"
+    >
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <!-- Logo & Brand -->
+        <div class="flex items-center gap-3">
+          <div
+            class="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white shadow-sm"
+          >
+            <i class="fa-solid fa-layer-group text-sm"></i>
+          </div>
+          <div>
+            <h1
+              class="font-heading font-bold text-lg text-white tracking-tight flex items-center gap-2"
+            >
+              HabitPulse
+              <span
+                class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 bg-zinc-800/80 px-2 py-0.5 rounded-full border border-zinc-700"
+                >Cloud Sync</span
+              >
+            </h1>
+            <p class="text-xs text-zinc-400">
+              Control de Hábitos Multi-Usuario
+            </p>
+          </div>
+        </div>
+
+        <!-- Month Selector & User Auth Pill -->
+        <div class="flex items-center gap-2 sm:gap-4">
+          <!-- Month Navigator -->
+          <div
+            class="flex items-center bg-zinc-900 rounded-xl p-1 border border-zinc-800"
+          >
+            <button
+              id="prevMonthBtn"
+              class="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition"
+              title="Mes Anterior"
+            >
+              <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <span
+              id="currentMonthLabel"
+              class="px-2 sm:px-3 font-heading font-semibold text-xs sm:text-sm text-zinc-200 min-w-[110px] sm:min-w-[130px] text-center"
+            >
+              -- ----
+            </span>
+            <button
+              id="nextMonthBtn"
+              class="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition"
+              title="Mes Siguiente"
+            >
+              <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+          </div>
+
+          <!-- Account / Cloud Status Button -->
+          <button
+            id="userAuthBtn"
+            class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition"
+          >
+            <span
+              id="syncDot"
+              class="w-2 h-2 rounded-full bg-emerald-500"
+            ></span>
+            <span
+              id="userAccountText"
+              class="font-medium max-w-[100px] sm:max-w-[140px] truncate"
+              >Conectando...</span
+            >
+            <i class="fa-solid fa-user-gear text-zinc-400 text-xs"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main
+      class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8"
+    >
+      <!-- QUICK HABIT CARDS -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- 1. GIMNASIO CARD -->
+        <div
+          class="matte-card matte-card-hover rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between"
+        >
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 rounded-xl bg-zinc-800/80 border border-zinc-700/80 flex items-center justify-center text-zinc-200"
+                >
+                  <i class="fa-solid fa-dumbbell text-base"></i>
+                </div>
+                <div>
+                  <h3 class="font-heading font-bold text-base text-white">
+                    Gimnasio
+                  </h3>
+                  <p class="text-xs text-zinc-400">Hora de llegada y notas</p>
+                </div>
+              </div>
+              <span
+                class="text-[11px] font-medium px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700"
+                >Gym</span
+              >
+            </div>
+
+            <div class="flex items-baseline justify-between my-4">
+              <div>
+                <span
+                  id="statGymCount"
+                  class="font-heading text-3xl font-bold text-white"
+                  >0</span
+                >
+                <span class="text-xs text-zinc-400 ml-1"
+                  >sesiones este mes</span
+                >
+              </div>
+              <span id="statGymLast" class="text-xs text-zinc-400"
+                >Último: --:--</span
+              >
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-800/60">
+            <button
+              id="quickGymBtn"
+              class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 font-semibold text-xs transition active:scale-95"
+            >
+              <i class="fa-solid fa-bolt text-xs"></i>
+              <span>Entré Ahora</span>
+            </button>
+            <button
+              onclick="openModal('gym')"
+              class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-medium text-xs border border-zinc-800 transition"
+            >
+              <i class="fa-solid fa-plus text-xs"></i>
+              <span>Manual</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. LECTURA CARD -->
+        <div
+          class="matte-card matte-card-hover rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between"
+        >
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 rounded-xl bg-zinc-800/80 border border-zinc-700/80 flex items-center justify-center text-zinc-200"
+                >
+                  <i class="fa-solid fa-book-open text-base"></i>
+                </div>
+                <div>
+                  <h3 class="font-heading font-bold text-base text-white">
+                    Lectura
+                  </h3>
+                  <p class="text-xs text-zinc-400">Cronómetro o minutos</p>
+                </div>
+              </div>
+              <span
+                class="text-[11px] font-medium px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700"
+                >Lectura</span
+              >
+            </div>
+
+            <div class="flex items-baseline justify-between my-4">
+              <div>
+                <span
+                  id="statReadingTime"
+                  class="font-heading text-3xl font-bold text-white"
+                  >0h 0m</span
+                >
+                <span class="text-xs text-zinc-400 ml-1">este mes</span>
+              </div>
+              <span id="statReadingSessions" class="text-xs text-zinc-400"
+                >0 sesiones</span
+              >
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-800/60">
+            <button
+              id="toggleTimerBtn"
+              class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 font-semibold text-xs transition active:scale-95"
+            >
+              <i id="timerIcon" class="fa-solid fa-play text-xs"></i>
+              <span id="timerBtnText">Cronómetro</span>
+            </button>
+            <button
+              onclick="openModal('reading')"
+              class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-medium text-xs border border-zinc-800 transition"
+            >
+              <i class="fa-solid fa-plus text-xs"></i>
+              <span>Manual</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. PASEO CARD -->
+        <div
+          class="matte-card matte-card-hover rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between"
+        >
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 rounded-xl bg-zinc-800/80 border border-zinc-700/80 flex items-center justify-center text-zinc-200"
+                >
+                  <i class="fa-solid fa-person-walking text-base"></i>
+                </div>
+                <div>
+                  <h3 class="font-heading font-bold text-base text-white">
+                    Paseo
+                  </h3>
+                  <p class="text-xs text-zinc-400">
+                    Distancia y hora de inicio
+                  </p>
+                </div>
+              </div>
+              <span
+                class="text-[11px] font-medium px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700"
+                >Paseos</span
+              >
+            </div>
+
+            <div class="flex items-baseline justify-between my-4">
+              <div>
+                <span
+                  id="statWalkKm"
+                  class="font-heading text-3xl font-bold text-white"
+                  >0.0</span
+                >
+                <span class="text-xs text-zinc-400 ml-1">km este mes</span>
+              </div>
+              <span id="statWalkCount" class="text-xs text-zinc-400"
+                >0 paseos</span
+              >
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-2 pt-2 border-t border-zinc-800/60">
+            <button
+              onclick="openModal('walking')"
+              class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 font-semibold text-xs transition active:scale-95"
+            >
+              <i class="fa-solid fa-shoe-prints text-xs"></i>
+              <span>Registrar Paseo (Km)</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIVE READING TIMER WIDGET (Appears when stopwatch is active) -->
+      <section
+        id="liveTimerBar"
+        class="hidden matte-card rounded-2xl p-4 border border-zinc-700 bg-zinc-900/90 relative"
+      >
+        <div
+          class="flex flex-col sm:flex-row items-center justify-between gap-4"
+        >
+          <div class="flex items-center gap-4">
+            <div
+              class="w-11 h-11 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white relative"
+            >
+              <i class="fa-solid fa-book-open-reader text-lg"></i>
+              <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                <span
+                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+                ></span>
+                <span
+                  class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"
+                ></span>
+              </span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span
+                  class="text-xs font-semibold text-zinc-300 uppercase tracking-wider"
+                  >Leyendo en tiempo real</span
+                >
+                <span id="timerStartTimeDisplay" class="text-xs text-zinc-500"
+                  >(Iniciado a las --:--)</span
+                >
+              </div>
+              <div
+                class="font-heading font-extrabold text-2xl text-white tracking-widest mt-0.5"
+                id="liveTimerDisplay"
+              >
+                00:00:00
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              id="pauseTimerBtn"
+              class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium text-xs border border-zinc-700 transition"
+            >
+              <i class="fa-solid fa-pause mr-1"></i> Pausar
+            </button>
+            <button
+              id="finishTimerBtn"
+              class="flex-1 sm:flex-none px-5 py-2 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-semibold text-xs transition"
+            >
+              <i class="fa-solid fa-check mr-1"></i> Guardar Sesión
+            </button>
+            <button
+              id="cancelTimerBtn"
+              class="p-2 rounded-xl text-zinc-400 hover:text-red-400 hover:bg-zinc-800 transition"
+              title="Descartar"
+            >
+              <i class="fa-solid fa-trash-can text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- MONTHLY CALENDAR GRID & HEATMAP -->
+      <section class="matte-card rounded-2xl p-6 space-y-4">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
+          <div>
+            <h2
+              class="font-heading font-bold text-base text-white flex items-center gap-2"
+            >
+              <i class="fa-solid fa-calendar-days text-zinc-400 text-sm"></i>
+              Calendario Mensual de Actividad
+            </h2>
+            <p class="text-xs text-zinc-400">
+              Haz clic en cualquier día para consultar o añadir registros en esa
+              fecha
+            </p>
+          </div>
+
+          <!-- Legend -->
+          <div class="flex items-center gap-4 text-xs text-zinc-400">
+            <div class="flex items-center gap-1.5">
+              <span
+                class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"
+              ></span>
+              <span>Gym</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span
+                class="w-2.5 h-2.5 rounded-full bg-indigo-400 inline-block"
+              ></span>
+              <span>Lectura</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span
+                class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"
+              ></span>
+              <span>Paseo</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Days of Week Header -->
+        <div
+          class="grid grid-cols-7 gap-1.5 sm:gap-2 text-center text-xs font-semibold text-zinc-500 pt-2"
+        >
+          <div>Lun</div>
+          <div>Mar</div>
+          <div>Mié</div>
+          <div>Jue</div>
+          <div>Vie</div>
+          <div>Sáb</div>
+          <div>Dom</div>
+        </div>
+
+        <!-- Dynamic Calendar Days Grid -->
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1.5 sm:gap-2">
+          <!-- Javascript rendered -->
+        </div>
+      </section>
+
+      <!-- LOG HISTORY FEED -->
+      <section class="matte-card rounded-2xl p-6 space-y-6">
+        <div
+          class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        >
+          <div>
+            <h2
+              class="font-heading font-bold text-base text-white flex items-center gap-2"
+            >
+              <i
+                class="fa-solid fa-clock-rotate-left text-zinc-400 text-sm"
+              ></i>
+              Historial de Registros
+            </h2>
+            <p class="text-xs text-zinc-400">
+              Listado sincronizado en la nube en tiempo real
+            </p>
+          </div>
+
+          <!-- Filter Tabs -->
+          <div
+            class="flex items-center gap-1 bg-zinc-900 p-1 rounded-xl border border-zinc-800 text-xs"
+          >
+            <button
+              class="filter-tab font-medium px-3 py-1.5 rounded-lg text-white bg-zinc-800 transition"
+              data-filter="all"
+            >
+              Todos
+            </button>
+            <button
+              class="filter-tab font-medium px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition"
+              data-filter="gym"
+            >
+              Gym
+            </button>
+            <button
+              class="filter-tab font-medium px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition"
+              data-filter="reading"
+            >
+              Lectura
+            </button>
+            <button
+              class="filter-tab font-medium px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition"
+              data-filter="walking"
+            >
+              Paseos
+            </button>
+          </div>
+        </div>
+
+        <!-- Log Entries List -->
+        <div id="logHistoryList" class="space-y-3 min-h-[160px]">
+          <!-- Javascript populated -->
+        </div>
+      </section>
+    </main>
+
+    <!-- MOBILE BOTTOM BAR -->
+    <nav
+      class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0a0a0c]/95 backdrop-blur-md border-t border-zinc-800 px-4 py-2.5 flex items-center justify-around"
+    >
+      <button
+        onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+        class="flex flex-col items-center gap-1 text-zinc-400 hover:text-white text-[11px]"
+      >
+        <i class="fa-solid fa-house text-sm"></i>
+        <span>Inicio</span>
+      </button>
+      <button
+        onclick="openModal('gym')"
+        class="flex flex-col items-center gap-1 text-zinc-400 hover:text-white text-[11px]"
+      >
+        <i class="fa-solid fa-dumbbell text-sm"></i>
+        <span>Gym</span>
+      </button>
+      <button
+        onclick="openModal('reading')"
+        class="flex flex-col items-center gap-1 text-zinc-400 hover:text-white text-[11px]"
+      >
+        <i class="fa-solid fa-book-open text-sm"></i>
+        <span>Lectura</span>
+      </button>
+      <button
+        onclick="openModal('walking')"
+        class="flex flex-col items-center gap-1 text-zinc-400 hover:text-white text-[11px]"
+      >
+        <i class="fa-solid fa-person-walking text-sm"></i>
+        <span>Paseo</span>
+      </button>
+    </nav>
+
+    <!-- MODALS -->
+
+    <!-- 1. AUTH / USER MODAL -->
+    <div
+      id="authModal"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    >
+      <div
+        class="matte-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative"
+      >
+        <button
+          onclick="closeAuthModal()"
+          class="absolute top-5 right-5 text-zinc-400 hover:text-white transition"
+        >
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div class="flex items-center gap-3 mb-5">
+          <div
+            class="w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white"
+          >
+            <i class="fa-solid fa-user-lock text-base"></i>
+          </div>
+          <div>
+            <h3 class="font-heading font-bold text-lg text-white">
+              Sincronización & Cuenta
+            </h3>
+            <p class="text-xs text-zinc-400" id="authSubtitle">
+              Accede desde cualquier dispositivo
+            </p>
+          </div>
+        </div>
+
+        <!-- Logged In State View -->
+        <div id="loggedInView" class="hidden space-y-4">
+          <div
+            class="p-4 rounded-xl bg-zinc-900 border border-zinc-800 space-y-2"
+          >
+            <p class="text-xs text-zinc-400">Usuario actual:</p>
+            <p
+              id="currentUserEmail"
+              class="font-mono text-sm font-semibold text-white truncate"
+            >
+              cargando...
+            </p>
+            <p id="currentUserType" class="text-[11px] text-zinc-500">
+              Sesión activa e identificada
+            </p>
+          </div>
+
+          <button
+            id="logoutBtn"
+            class="w-full py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-semibold transition"
+          >
+            <i class="fa-solid fa-right-from-bracket mr-1.5"></i> Cerrar Sesión
+          </button>
+        </div>
+
+        <!-- Auth Forms View -->
+        <div id="loggedOutView" class="space-y-4">
+          <!-- Auth Tabs -->
+          <div
+            class="grid grid-cols-2 gap-1 p-1 bg-zinc-900 rounded-xl border border-zinc-800 text-xs"
+          >
+            <button
+              id="tabLogin"
+              class="py-1.5 rounded-lg text-white bg-zinc-800 font-semibold transition"
+            >
+              Iniciar Sesión
+            </button>
+            <button
+              id="tabRegister"
+              class="py-1.5 rounded-lg text-zinc-400 hover:text-white font-medium transition"
+            >
+              Registrarse
+            </button>
+          </div>
+
+          <form id="authForm" class="space-y-3 pt-2">
+            <div>
+              <label class="block text-xs font-medium text-zinc-400 mb-1"
+                >Correo Electrónico</label
+              >
+              <input
+                type="email"
+                id="authEmail"
+                required
+                placeholder="tu@email.com"
+                class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500 transition"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-zinc-400 mb-1"
+                >Contraseña</label
+              >
+              <input
+                type="password"
+                id="authPassword"
+                required
+                placeholder="••••••••"
+                class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500 transition"
+              />
+            </div>
+
+            <button
+              type="submit"
+              id="authSubmitBtn"
+              class="w-full py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-semibold text-xs transition"
+            >
+              Iniciar Sesión
+            </button>
+          </form>
+
+          <div class="relative py-2">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-zinc-800"></div>
+            </div>
+            <div class="relative flex justify-center text-[10px] uppercase">
+              <span class="bg-[#121215] px-2 text-zinc-500">O bien</span>
+            </div>
+          </div>
+
+          <button
+            id="anonymousLoginBtn"
+            class="w-full py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-medium text-xs border border-zinc-800 transition"
+          >
+            <i class="fa-solid fa-user-secret mr-1.5"></i> Usar Modo Invitado /
+            Anónimo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. GIMNASIO MODAL -->
+    <div
+      id="gymModal"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    >
+      <div
+        class="matte-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative"
+      >
+        <button
+          onclick="closeModal('gym')"
+          class="absolute top-5 right-5 text-zinc-400 hover:text-white transition"
+        >
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div class="flex items-center gap-3 mb-5">
+          <div
+            class="w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white"
+          >
+            <i class="fa-solid fa-dumbbell text-base"></i>
+          </div>
+          <div>
+            <h3 class="font-heading font-bold text-lg text-white">
+              Registrar Gimnasio
+            </h3>
+            <p class="text-xs text-zinc-400">
+              Guarda la hora de llegada e intensidad
+            </p>
+          </div>
+        </div>
+
+        <form id="gymForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-zinc-400 mb-1"
+              >Fecha</label
+            >
+            <input
+              type="date"
+              id="gymDate"
+              required
+              class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500 transition"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-zinc-400 mb-1"
+              >Hora de Entrada (Llegada)</label
+            >
+            <input
+              type="time"
+              id="gymTime"
+              required
+              class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500 transition"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-zinc-400 mb-1"
+              >Notas / Ejercicios (Opcional)</label
+            >
+            <input
+              type="text"
+              id="gymNotes"
+              placeholder="ej. Pierna y Hombro / Intensidad alta"
+              class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500 transition"
+            />
+          </div>
+
+          <div class="pt-2 flex gap-3">
+            <button
+              type="button"
+              onclick="closeModal('gym')"
+              class="flex-1 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-800 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="flex-1 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-semibold text-xs transition"
+            >
+              Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 3. LECTURA MODAL -->
+    <div
+      id="readingModal"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    >
+      <div
+        class="matte-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative"
+      >
+        <button
+          onclick="closeModal('reading')"
+          class="absolute top-5 right-5 text-zinc-400 hover:text-white transition"
+        >
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div class="flex items-center gap-3 mb-5">
+          <div
+            class="w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white"
+          >
+            <i class="fa-solid fa-book-open text-base"></i>
+          </div>
+          <div>
+            <h3 class="font-heading font-bold text-lg text-white">
+              Registrar Lectura
+            </h3>
+            <p class="text-xs text-zinc-400">
+              Guarda hora de inicio y duración
+            </p>
+          </div>
+        </div>
+
+        <form id="readingForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-zinc-400 mb-1"
+              >Fecha</label
+            >
+            <input
+              type="date"
+              id="readingDate"
+              required
+              class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500 transition"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-zinc-400 mb-1"
+                >Hora Inicio</label
+              >
+              <input
+                type="time"
+                id="readingTime"
+                required
+                class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500 transition"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-zinc-400 mb-1"
+                >Duración (Minutos)</label
+              >
+              <input
+                type="number"
+                id="readingDuration"
+                min="1"
+                max="1440"
+                required
+                placeholder="30"
+                class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500 transition"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-zinc-400 mb-1"
+              >Título del libro / Notas (Opcional)</label
+            >
+            <input
+              type="text"
+              id="readingTitle"
+              placeholder="ej. Hábitos Atómicos"
+              class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500 transition"
+            />
+          </div>
+
+          <div class="pt-2 flex gap-3">
+            <button
+              type="button"
+              onclick="closeModal('reading')"
+              class="flex-1 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-800 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="flex-1 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-semibold text-xs transition"
+            >
+              Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 4. PASEO MODAL -->
+    <div
+      id="walkingModal"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    >
+      <div
+        class="matte-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative"
+      >
+        <button
+          onclick="closeModal('walking')"
+          class="absolute top-5 right-5 text-zinc-400 hover:text-white transition"
+        >
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div class="flex items-center gap-3 mb-5">
+          <div
+            class="w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white"
+          >
+            <i class="fa-solid fa-person-walking text-base"></i>
+          </div>
+          <div>
+            <h3 class="font-heading font-bold text-lg text-white">
+              Registrar Paseo
+            </h3>
+            <p class="text-xs text-zinc-400">
+              Guarda hora de inicio y kilómetros
+            </p>
+          </div>
+        </div>
+
+        <form id="walkingForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-zinc-400 mb-1"
+              >Fecha</label
+            >
+            <input
+              type="date"
+              id="walkingDate"
+              required
+              class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500 transition"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-zinc-400 mb-1"
+                >Hora Inicio</label
+              >
+              <input
+                type="time"
+                id="walkingTime"
+                required
+                class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500 transition"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-zinc-400 mb-1"
+                >Distancia (Km)</label
+              >
+              <input
+                type="number"
+                step="0.1"
+                min="0.1"
+                id="walkingDistance"
+                required
+                placeholder="5.0"
+                class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500 transition"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-zinc-400 mb-1"
+              >Ruta o Notas (Opcional)</label
+            >
+            <input
+              type="text"
+              id="walkingNotes"
+              placeholder="ej. Paseo por el parque"
+              class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-zinc-500 transition"
+            />
+          </div>
+
+          <div class="pt-2 flex gap-3">
+            <button
+              type="button"
+              onclick="closeModal('walking')"
+              class="flex-1 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-800 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="flex-1 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-semibold text-xs transition"
+            >
+              Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 5. DAY DETAIL MODAL -->
+    <div
+      id="dayDetailModal"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    >
+      <div
+        class="matte-card w-full max-w-lg rounded-2xl p-6 shadow-2xl relative"
+      >
+        <button
+          onclick="closeDayDetailModal()"
+          class="absolute top-5 right-5 text-zinc-400 hover:text-white transition"
+        >
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div class="flex items-center gap-3 mb-4">
+          <div
+            class="w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white"
+          >
+            <i class="fa-solid fa-calendar-day text-base"></i>
+          </div>
+          <div>
+            <h3
+              id="dayDetailTitle"
+              class="font-heading font-bold text-lg text-white"
+            >
+              Detalle del Día
+            </h3>
+            <p id="dayDetailSubtitle" class="text-xs text-zinc-400">
+              Registros en esta fecha
+            </p>
+          </div>
+        </div>
+
+        <div
+          id="dayDetailLogsList"
+          class="space-y-2.5 max-h-60 overflow-y-auto my-4 pr-1"
+        >
+          <!-- Javascript populated -->
+        </div>
+
+        <div class="pt-3 border-t border-zinc-800/80 flex flex-wrap gap-2">
+          <span class="text-xs text-zinc-400 w-full mb-1"
+            >Añadir registro a esta fecha:</span
+          >
+          <button
+            id="addGymToDateBtn"
+            class="flex-1 py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-800 transition"
+          >
+            + Gym
+          </button>
+          <button
+            id="addReadingToDateBtn"
+            class="flex-1 py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-800 transition"
+          >
+            + Lectura
+          </button>
+          <button
+            id="addWalkingToDateBtn"
+            class="flex-1 py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-800 transition"
+          >
+            + Paseo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. CONFIRMATION DELETE DIALOG -->
+    <div
+      id="confirmModal"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    >
+      <div
+        class="matte-card w-full max-w-sm rounded-2xl p-6 shadow-2xl relative text-center space-y-4"
+      >
+        <div
+          class="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto text-lg"
+        >
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <h3 class="font-heading font-bold text-base text-white">
+            ¿Eliminar registro?
+          </h3>
+          <p class="text-xs text-zinc-400 mt-1">
+            Esta acción se sincronizará de inmediato en la nube y no se puede
+            deshacer.
+          </p>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button
+            id="confirmCancelBtn"
+            class="flex-1 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-800 transition"
+          >
+            Cancelar
+          </button>
+          <button
+            id="confirmOkBtn"
+            class="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold text-xs transition"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div
+      id="toastContainer"
+      class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"
+    ></div>
+
+    <!-- FIREBASE MODULES & APPLICATION CODE -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+      import {
+        getAuth,
+        signInWithCustomToken,
+        signInAnonymously,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+        signOut,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        doc,
+        addDoc,
+        deleteDoc,
+        onSnapshot,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+      // GLOBAL CONFIG & FIREBASE INITIALIZATION
+      const appId =
+        typeof __app_id !== "undefined" ? __app_id : "habit-pulse-default";
+      const firebaseConfig = {
+        apiKey: "AIzaSyAw0AZ6mfSgxMuhrMvRmcD6M54aOHChlGA",
+        authDomain: "habit-tracker-f79b7.firebaseapp.com",
+        projectId: "habit-tracker-f79b7",
+        storageBucket: "habit-tracker-f79b7.firebasestorage.app",
+        messagingSenderId: "413520481860",
+        appId: "1:413520481860:web:cf1cd335cda146cc267611",
+        measurementId: "G-D98ZGK97XV",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      // STATE VARIABLES
+      let currentUser = null;
+      let unsubscribeLogs = null;
+      let logsData = [];
+      let currentDateView = new Date();
+      let activeFilter = "all";
+
+      // Reading Timer State
+      let timerInterval = null;
+      let timerSeconds = 0;
+      let timerStartTimeStr = "";
+      let isTimerRunning = false;
+
+      // Pending Delete ID
+      let pendingDeleteId = null;
+
+      // Selected Date for Modals
+      let activeSelectedDateStr = getTodayISO();
+
+      // AUTH MODE STATE (login vs register)
+      let isRegisteringMode = false;
+
+      // ON INITIALIZATION
+      document.addEventListener("DOMContentLoaded", async () => {
+        setupAuthEventListeners();
+        setupFormEventListeners();
+        setupTimerEventListeners();
+
+        // Try Custom Token or Anonymous Fallback on Load
+        try {
+          if (
+            typeof __initial_auth_token !== "undefined" &&
+            __initial_auth_token
+          ) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } else if (!auth.currentUser) {
+            await signInAnonymously(auth);
+          }
+        } catch (err) {
+          console.warn("Auth initialization fallback:", err);
+          if (!auth.currentUser) {
+            try {
+              await signInAnonymously(auth);
+            } catch (e) {}
+          }
+        }
+      });
+
+      // AUTHENTICATION OBSERVER
+      onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        updateAuthUI(user);
+
+        if (user) {
+          subscribeToUserLogs(user.uid);
+        } else {
+          if (unsubscribeLogs) {
+            unsubscribeLogs();
+            unsubscribeLogs = null;
+          }
+          logsData = [];
+          renderUI();
+        }
+      });
+
+      // SUBSCRIBE TO FIRESTORE USER COLLECTION
+      function subscribeToUserLogs(userId) {
+        if (unsubscribeLogs) unsubscribeLogs();
+
+        // Strict path requirement: /artifacts/{appId}/users/{userId}/{collectionName}
+        const logsCollectionRef = collection(
+          db,
+          "artifacts",
+          appId,
+          "users",
+          userId,
+          "habit_logs",
+        );
+
+        unsubscribeLogs = onSnapshot(
+          logsCollectionRef,
+          (snapshot) => {
+            logsData = [];
+            snapshot.forEach((docSnap) => {
+              logsData.push({
+                id: docSnap.id,
+                ...docSnap.data(),
+              });
+            });
+            renderUI();
+            setSyncStatus(true);
+          },
+          (error) => {
+            console.error("Firestore onSnapshot error:", error);
+            setSyncStatus(false);
+            showToast("Error de conexión a la nube", "error");
+          },
+        );
+      }
+
+      // UPDATE AUTH UI STATUS
+      function updateAuthUI(user) {
+        const userAccountText = document.getElementById("userAccountText");
+        const currentUserEmail = document.getElementById("currentUserEmail");
+        const loggedInView = document.getElementById("loggedInView");
+        const loggedOutView = document.getElementById("loggedOutView");
+        const authSubtitle = document.getElementById("authSubtitle");
+
+        if (user) {
+          const isAnon = user.isAnonymous;
+          const emailStr = isAnon
+            ? "Invitado Anónimo"
+            : user.email || "Usuario Reg.";
+          userAccountText.textContent = emailStr;
+          currentUserEmail.textContent = isAnon
+            ? `ID: ${user.uid.substring(0, 8)}... (Anónimo)`
+            : user.email;
+
+          loggedInView.classList.remove("hidden");
+          loggedOutView.classList.add("hidden");
+          authSubtitle.textContent = "Sesión activa en este dispositivo";
+        } else {
+          userAccountText.textContent = "Sin Sesión";
+          loggedInView.classList.add("hidden");
+          loggedOutView.classList.remove("hidden");
+          authSubtitle.textContent = "Accede desde cualquier lugar";
+        }
+      }
+
+      function setSyncStatus(online) {
+        const dot = document.getElementById("syncDot");
+        if (dot) {
+          dot.className = online
+            ? "w-2 h-2 rounded-full bg-emerald-500"
+            : "w-2 h-2 rounded-full bg-amber-500";
+        }
+      }
+
+      // AUTH MODAL & BUTTON LISTENERS
+      function setupAuthEventListeners() {
+        document.getElementById("userAuthBtn").onclick = () => {
+          document.getElementById("authModal").classList.remove("hidden");
+        };
+
+        document.getElementById("tabLogin").onclick = () => {
+          isRegisteringMode = false;
+          document.getElementById("tabLogin").className =
+            "py-1.5 rounded-lg text-white bg-zinc-800 font-semibold transition";
+          document.getElementById("tabRegister").className =
+            "py-1.5 rounded-lg text-zinc-400 hover:text-white font-medium transition";
+          document.getElementById("authSubmitBtn").textContent =
+            "Iniciar Sesión";
+        };
+
+        document.getElementById("tabRegister").onclick = () => {
+          isRegisteringMode = true;
+          document.getElementById("tabRegister").className =
+            "py-1.5 rounded-lg text-white bg-zinc-800 font-semibold transition";
+          document.getElementById("tabLogin").className =
+            "py-1.5 rounded-lg text-zinc-400 hover:text-white font-medium transition";
+          document.getElementById("authSubmitBtn").textContent = "Crear Cuenta";
+        };
+
+        document.getElementById("authForm").onsubmit = async (e) => {
+          e.preventDefault();
+          const email = document.getElementById("authEmail").value.trim();
+          const password = document.getElementById("authPassword").value;
+
+          try {
+            if (isRegisteringMode) {
+              await createUserWithEmailAndPassword(auth, email, password);
+              showToast("Cuenta creada con éxito", "success");
+            } else {
+              await signInWithEmailAndPassword(auth, email, password);
+              showToast("Sesión iniciada correctamente", "success");
+            }
+            closeAuthModal();
+          } catch (err) {
+            showToast(getAuthErrorMessage(err.code), "error");
+          }
+        };
+
+        document.getElementById("anonymousLoginBtn").onclick = async () => {
+          try {
+            await signInAnonymously(auth);
+            showToast("Entrado en Modo Invitado", "info");
+            closeAuthModal();
+          } catch (err) {
+            showToast("Fallo al entrar en modo anónimo", "error");
+          }
+        };
+
+        document.getElementById("logoutBtn").onclick = async () => {
+          try {
+            await signOut(auth);
+            showToast("Sesión cerrada", "info");
+            closeAuthModal();
+          } catch (err) {
+            showToast("Error al cerrar sesión", "error");
+          }
+        };
+      }
+
+      window.closeAuthModal = function () {
+        document.getElementById("authModal").classList.add("hidden");
+      };
+
+      // FIRESTORE CRUD OPERATIONS
+      async function saveLogToFirestore(logObj) {
+        if (!currentUser) {
+          showToast("Debes tener sesión para guardar", "error");
+          return;
+        }
+        try {
+          const logsCollectionRef = collection(
+            db,
+            "artifacts",
+            appId,
+            "users",
+            currentUser.uid,
+            "habit_logs",
+          );
+          await addDoc(logsCollectionRef, {
+            ...logObj,
+            createdAt: new Date().toISOString(),
+          });
+          showToast("Registro guardado en la nube", "success");
+        } catch (e) {
+          console.error("Error adding document: ", e);
+          showToast("Error al guardar en la nube", "error");
+        }
+      }
+
+      async function deleteLogFromFirestore(logId) {
+        if (!currentUser) return;
+        try {
+          const logDocRef = doc(
+            db,
+            "artifacts",
+            appId,
+            "users",
+            currentUser.uid,
+            "habit_logs",
+            logId,
+          );
+          await deleteDoc(logDocRef);
+          showToast("Registro eliminado", "info");
+        } catch (e) {
+          console.error("Error deleting document: ", e);
+          showToast("Error al eliminar", "error");
+        }
+      }
+
+      // FORM LISTENERS
+      function setupFormEventListeners() {
+        // Month navigation
+        document.getElementById("prevMonthBtn").onclick = () => {
+          currentDateView.setMonth(currentDateView.getMonth() - 1);
+          renderUI();
+        };
+        document.getElementById("nextMonthBtn").onclick = () => {
+          currentDateView.setMonth(currentDateView.getMonth() + 1);
+          renderUI();
+        };
+
+        // Quick Gym check-in
+        document.getElementById("quickGymBtn").onclick = () => {
+          const nowTime = getCurrentTimeHHMM();
+          saveLogToFirestore({
+            type: "gym",
+            date: getTodayISO(),
+            time: nowTime,
+            notes: "Check-in Rápido",
+          });
+        };
+
+        // Filter Tabs
+        document.querySelectorAll(".filter-tab").forEach((btn) => {
+          btn.onclick = (e) => {
+            document.querySelectorAll(".filter-tab").forEach((b) => {
+              b.className =
+                "filter-tab font-medium px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition";
+            });
+            const target = e.currentTarget;
+            target.className =
+              "filter-tab font-medium px-3 py-1.5 rounded-lg text-white bg-zinc-800 transition";
+            activeFilter = target.dataset.filter;
+            renderLogHistoryFeed();
+          };
+        });
+
+        // Habit Forms
+        document.getElementById("gymForm").onsubmit = (e) => {
+          e.preventDefault();
+          saveLogToFirestore({
+            type: "gym",
+            date: document.getElementById("gymDate").value,
+            time: document.getElementById("gymTime").value,
+            notes: document.getElementById("gymNotes").value,
+          });
+          closeModal("gym");
+        };
+
+        document.getElementById("readingForm").onsubmit = (e) => {
+          e.preventDefault();
+          saveLogToFirestore({
+            type: "reading",
+            date: document.getElementById("readingDate").value,
+            time: document.getElementById("readingTime").value,
+            durationMinutes: Number(
+              document.getElementById("readingDuration").value,
+            ),
+            title: document.getElementById("readingTitle").value,
+          });
+          closeModal("reading");
+        };
+
+        document.getElementById("walkingForm").onsubmit = (e) => {
+          e.preventDefault();
+          saveLogToFirestore({
+            type: "walking",
+            date: document.getElementById("walkingDate").value,
+            time: document.getElementById("walkingTime").value,
+            distanceKm: parseFloat(
+              document.getElementById("walkingDistance").value,
+            ),
+            notes: document.getElementById("walkingNotes").value,
+          });
+          closeModal("walking");
+        };
+
+        // Confirmation Modal Buttons
+        document.getElementById("confirmCancelBtn").onclick = () => {
+          pendingDeleteId = null;
+          document.getElementById("confirmModal").classList.add("hidden");
+        };
+
+        document.getElementById("confirmOkBtn").onclick = () => {
+          if (pendingDeleteId) {
+            deleteLogFromFirestore(pendingDeleteId);
+            pendingDeleteId = null;
+          }
+          document.getElementById("confirmModal").classList.add("hidden");
+        };
+      }
+
+      // TIMER EVENT LISTENERS
+      function setupTimerEventListeners() {
+        document.getElementById("toggleTimerBtn").onclick = () => {
+          if (!isTimerRunning) {
+            startTimer();
+          } else {
+            pauseTimer();
+          }
+        };
+        document.getElementById("pauseTimerBtn").onclick = pauseTimer;
+        document.getElementById("finishTimerBtn").onclick = finishTimer;
+        document.getElementById("cancelTimerBtn").onclick = cancelTimer;
+      }
+
+      function startTimer() {
+        isTimerRunning = true;
+        timerStartTimeStr = getCurrentTimeHHMM();
+        document.getElementById("timerStartTimeDisplay").textContent =
+          `(Iniciado a las ${timerStartTimeStr})`;
+        document.getElementById("liveTimerBar").classList.remove("hidden");
+
+        document.getElementById("timerBtnText").textContent = "Pausar";
+        document.getElementById("timerIcon").className =
+          "fa-solid fa-pause text-xs";
+
+        timerInterval = setInterval(() => {
+          timerSeconds++;
+          updateTimerDisplay();
+        }, 1000);
+
+        showToast("Cronómetro de lectura iniciado", "info");
+      }
+
+      function pauseTimer() {
+        isTimerRunning = false;
+        clearInterval(timerInterval);
+        document.getElementById("timerBtnText").textContent = "Continuar";
+        document.getElementById("timerIcon").className =
+          "fa-solid fa-play text-xs";
+      }
+
+      function finishTimer() {
+        pauseTimer();
+        const durationMins = Math.max(1, Math.round(timerSeconds / 60));
+
+        saveLogToFirestore({
+          type: "reading",
+          date: getTodayISO(),
+          time: timerStartTimeStr || getCurrentTimeHHMM(),
+          durationMinutes: durationMins,
+          title: "Sesión con cronómetro",
+        });
+
+        resetTimer();
+      }
+
+      function cancelTimer() {
+        pauseTimer();
+        resetTimer();
+        showToast("Lectura descartada", "info");
+      }
+
+      function resetTimer() {
+        isTimerRunning = false;
+        clearInterval(timerInterval);
+        timerSeconds = 0;
+        timerStartTimeStr = "";
+        document.getElementById("liveTimerBar").classList.add("hidden");
+        document.getElementById("timerBtnText").textContent = "Cronómetro";
+        document.getElementById("timerIcon").className =
+          "fa-solid fa-play text-xs";
+        updateTimerDisplay();
+      }
+
+      function updateTimerDisplay() {
+        const hrs = String(Math.floor(timerSeconds / 3600)).padStart(2, "0");
+        const mins = String(Math.floor((timerSeconds % 3600) / 60)).padStart(
+          2,
+          "0",
+        );
+        const secs = String(timerSeconds % 60).padStart(2, "0");
+        document.getElementById("liveTimerDisplay").textContent =
+          `${hrs}:${mins}:${secs}`;
+      }
+
+      // RENDERING CONTROLLER
+      function renderUI() {
+        renderMonthLabel();
+        renderStatsSummary();
+        renderCalendarGrid();
+        renderLogHistoryFeed();
+      }
+
+      function renderMonthLabel() {
+        const monthsEs = [
+          "Enero",
+          "Febrero",
+          "Marzo",
+          "Abril",
+          "Mayo",
+          "Junio",
+          "Julio",
+          "Agosto",
+          "Septiembre",
+          "Octubre",
+          "Noviembre",
+          "Diciembre",
+        ];
+        const m = monthsEs[currentDateView.getMonth()];
+        const y = currentDateView.getFullYear();
+        document.getElementById("currentMonthLabel").textContent = `${m} ${y}`;
+      }
+
+      function renderStatsSummary() {
+        const viewYear = currentDateView.getFullYear();
+        const viewMonth = currentDateView.getMonth();
+
+        const monthlyLogs = logsData.filter((log) => {
+          if (!log.date) return false;
+          const [y, m] = log.date.split("-").map(Number);
+          return y === viewYear && m - 1 === viewMonth;
+        });
+
+        // Gym Stats
+        const gymLogs = monthlyLogs.filter((l) => l.type === "gym");
+        document.getElementById("statGymCount").textContent = gymLogs.length;
+        if (gymLogs.length > 0) {
+          const sorted = [...gymLogs].sort((a, b) =>
+            (b.date + b.time).localeCompare(a.date + a.time),
+          );
+          document.getElementById("statGymLast").textContent =
+            `Último: ${sorted[0].time} (${formatDisplayDate(sorted[0].date)})`;
+        } else {
+          document.getElementById("statGymLast").textContent = "Último: --:--";
+        }
+
+        // Reading Stats
+        const readingLogs = monthlyLogs.filter((l) => l.type === "reading");
+        const totalMins = readingLogs.reduce(
+          (sum, l) => sum + (Number(l.durationMinutes) || 0),
+          0,
+        );
+        const hrs = Math.floor(totalMins / 60);
+        const mins = totalMins % 60;
+        document.getElementById("statReadingTime").textContent =
+          `${hrs}h ${mins}m`;
+        document.getElementById("statReadingSessions").textContent =
+          `${readingLogs.length} sesiones`;
+
+        // Walking Stats
+        const walkingLogs = monthlyLogs.filter((l) => l.type === "walking");
+        const totalKm = walkingLogs.reduce(
+          (sum, l) => sum + (Number(l.distanceKm) || 0),
+          0,
+        );
+        document.getElementById("statWalkKm").textContent = totalKm.toFixed(1);
+        document.getElementById("statWalkCount").textContent =
+          `${walkingLogs.length} paseos`;
+      }
+
+      function renderCalendarGrid() {
+        const gridContainer = document.getElementById("calendarGrid");
+        gridContainer.innerHTML = "";
+
+        const year = currentDateView.getFullYear();
+        const month = currentDateView.getMonth();
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const totalDays = lastDay.getDate();
+
+        let startingDay = firstDay.getDay() - 1;
+        if (startingDay === -1) startingDay = 6;
+
+        // Empty padding slots
+        for (let i = 0; i < startingDay; i++) {
+          const emptyCell = document.createElement("div");
+          emptyCell.className =
+            "h-14 sm:h-16 rounded-xl bg-zinc-900/40 border border-zinc-900 opacity-40";
+          gridContainer.appendChild(emptyCell);
+        }
+
+        const todayISO = getTodayISO();
+
+        for (let day = 1; day <= totalDays; day++) {
+          const monthStr = String(month + 1).padStart(2, "0");
+          const dayStr = String(day).padStart(2, "0");
+          const dateISO = `${year}-${monthStr}-${dayStr}`;
+
+          const dayLogs = logsData.filter((l) => l.date === dateISO);
+          const isToday = dateISO === todayISO;
+
+          const hasGym = dayLogs.some((l) => l.type === "gym");
+          const hasReading = dayLogs.some((l) => l.type === "reading");
+          const hasWalking = dayLogs.some((l) => l.type === "walking");
+
+          const dayCard = document.createElement("div");
+          dayCard.className = `h-14 sm:h-16 rounded-xl p-1.5 flex flex-col justify-between border cursor-pointer transition ${
+            isToday
+              ? "border-zinc-500 bg-zinc-800/80"
+              : "border-zinc-800/80 bg-zinc-900/70 hover:border-zinc-700"
+          }`;
+
+          dayCard.onclick = () => openDayDetailModal(dateISO, dayLogs);
+
+          let dayHeader = `<div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold ${isToday ? "text-white font-bold" : "text-zinc-400"}">${day}</span>
+                    ${isToday ? '<span class="w-1.5 h-1.5 rounded-full bg-white"></span>' : ""}
+                </div>`;
+
+          let dotsHTML = '<div class="flex flex-wrap gap-1 mt-auto">';
+          if (hasGym)
+            dotsHTML += `<span class="w-2 h-2 rounded-full bg-emerald-500" title="Gimnasio"></span>`;
+          if (hasReading)
+            dotsHTML += `<span class="w-2 h-2 rounded-full bg-indigo-400" title="Lectura"></span>`;
+          if (hasWalking)
+            dotsHTML += `<span class="w-2 h-2 rounded-full bg-amber-400" title="Paseo"></span>`;
+          dotsHTML += "</div>";
+
+          dayCard.innerHTML = dayHeader + dotsHTML;
+          gridContainer.appendChild(dayCard);
+        }
+      }
+
+      function renderLogHistoryFeed() {
+        const listContainer = document.getElementById("logHistoryList");
+        listContainer.innerHTML = "";
+
+        let filtered = [...logsData];
+        if (activeFilter !== "all") {
+          filtered = filtered.filter((l) => l.type === activeFilter);
+        }
+
+        // Memory sort newest first
+        filtered.sort((a, b) => {
+          const dtA = (a.date || "") + "T" + (a.time || "00:00");
+          const dtB = (b.date || "") + "T" + (b.time || "00:00");
+          return dtB.localeCompare(dtA);
+        });
+
+        if (filtered.length === 0) {
+          listContainer.innerHTML = `
+                    <div class="text-center py-8 text-zinc-500 space-y-2">
+                        <i class="fa-solid fa-inbox text-2xl opacity-40"></i>
+                        <p class="text-xs">No hay registros guardados.</p>
+                    </div>
+                `;
+          return;
+        }
+
+        filtered.forEach((log) => {
+          const itemCard = document.createElement("div");
+          itemCard.className =
+            "matte-card rounded-xl p-3.5 flex items-center justify-between gap-4 border border-zinc-800/80 hover:border-zinc-700 transition group";
+
+          let iconHTML = "";
+          let titleHTML = "";
+          let detailsHTML = "";
+
+          if (log.type === "gym") {
+            iconHTML = `<div class="w-9 h-9 rounded-xl bg-zinc-800/80 border border-zinc-700/80 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-dumbbell text-sm"></i>
+                    </div>`;
+            titleHTML = `<span class="font-semibold text-white text-xs">Gimnasio</span>`;
+            detailsHTML = `<span class="text-xs text-zinc-300">Llegada ${log.time}</span>`;
+            if (log.notes)
+              detailsHTML += `<span class="text-xs text-zinc-500 ml-2">• ${escapeHTML(log.notes)}</span>`;
+          } else if (log.type === "reading") {
+            iconHTML = `<div class="w-9 h-9 rounded-xl bg-zinc-800/80 border border-zinc-700/80 text-indigo-400 flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-book-open text-sm"></i>
+                    </div>`;
+            titleHTML = `<span class="font-semibold text-white text-xs">Lectura</span>`;
+            detailsHTML = `<span class="text-xs text-zinc-300">${log.durationMinutes} min</span><span class="text-xs text-zinc-500 ml-2">(${log.time})</span>`;
+            if (log.title)
+              detailsHTML += `<span class="text-xs text-zinc-400 ml-2">📖 "${escapeHTML(log.title)}"</span>`;
+          } else if (log.type === "walking") {
+            iconHTML = `<div class="w-9 h-9 rounded-xl bg-zinc-800/80 border border-zinc-700/80 text-amber-400 flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-person-walking text-sm"></i>
+                    </div>`;
+            titleHTML = `<span class="font-semibold text-white text-xs">Paseo</span>`;
+            detailsHTML = `<span class="text-xs text-zinc-300">${log.distanceKm} km</span><span class="text-xs text-zinc-500 ml-2">(${log.time})</span>`;
+            if (log.notes)
+              detailsHTML += `<span class="text-xs text-zinc-500 ml-2">• ${escapeHTML(log.notes)}</span>`;
+          }
+
+          itemCard.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0">
+                        ${iconHTML}
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                ${titleHTML}
+                                <span class="text-[11px] text-zinc-500">${formatDisplayDate(log.date)}</span>
+                            </div>
+                            <div class="mt-0.5 flex items-center gap-1 flex-wrap">
+                                ${detailsHTML}
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="requestDeleteLog('${log.id}')" class="p-2 text-zinc-500 hover:text-red-400 hover:bg-zinc-800 rounded-lg transition" title="Eliminar">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                `;
+
+          listContainer.appendChild(itemCard);
+        });
+      }
+
+      // GLOBAL MODAL UTILS
+      window.openModal = function (type, defaultDate = null) {
+        const targetDate = defaultDate || getTodayISO();
+        const nowTime = getCurrentTimeHHMM();
+
+        if (type === "gym") {
+          document.getElementById("gymDate").value = targetDate;
+          document.getElementById("gymTime").value = nowTime;
+          document.getElementById("gymNotes").value = "";
+          document.getElementById("gymModal").classList.remove("hidden");
+        } else if (type === "reading") {
+          document.getElementById("readingDate").value = targetDate;
+          document.getElementById("readingTime").value = nowTime;
+          document.getElementById("readingDuration").value = "30";
+          document.getElementById("readingTitle").value = "";
+          document.getElementById("readingModal").classList.remove("hidden");
+        } else if (type === "walking") {
+          document.getElementById("walkingDate").value = targetDate;
+          document.getElementById("walkingTime").value = nowTime;
+          document.getElementById("walkingDistance").value = "5.0";
+          document.getElementById("walkingNotes").value = "";
+          document.getElementById("walkingModal").classList.remove("hidden");
+        }
+      };
+
+      window.closeModal = function (type) {
+        document.getElementById(`${type}Modal`).classList.add("hidden");
+      };
+
+      window.openDayDetailModal = function (dateISO, dayLogs) {
+        activeSelectedDateStr = dateISO;
+        document.getElementById("dayDetailTitle").textContent =
+          formatDisplayDate(dateISO);
+
+        const list = document.getElementById("dayDetailLogsList");
+        list.innerHTML = "";
+
+        if (dayLogs.length === 0) {
+          list.innerHTML = `<p class="text-xs text-zinc-500 py-3 text-center">Sin actividad en este día.</p>`;
+        } else {
+          dayLogs.forEach((log) => {
+            const row = document.createElement("div");
+            row.className =
+              "p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-between text-xs";
+
+            let label = "";
+            if (log.type === "gym")
+              label = `🏋️ <b>Gimnasio</b> a las ${log.time}`;
+            if (log.type === "reading")
+              label = `📚 <b>Lectura</b> (${log.durationMinutes} min - ${log.time})`;
+            if (log.type === "walking")
+              label = `🚶 <b>Paseo</b> (${log.distanceKm} km - ${log.time})`;
+
+            row.innerHTML = `<span class="text-zinc-300">${label}</span>
+                        <button onclick="requestDeleteLog('${log.id}'); closeDayDetailModal();" class="text-zinc-500 hover:text-red-400">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>`;
+            list.appendChild(row);
+          });
+        }
+
+        document.getElementById("addGymToDateBtn").onclick = () => {
+          closeDayDetailModal();
+          openModal("gym", activeSelectedDateStr);
+        };
+        document.getElementById("addReadingToDateBtn").onclick = () => {
+          closeDayDetailModal();
+          openModal("reading", activeSelectedDateStr);
+        };
+        document.getElementById("addWalkingToDateBtn").onclick = () => {
+          closeDayDetailModal();
+          openModal("walking", activeSelectedDateStr);
+        };
+
+        document.getElementById("dayDetailModal").classList.remove("hidden");
+      };
+
+      window.closeDayDetailModal = function () {
+        document.getElementById("dayDetailModal").classList.add("hidden");
+      };
+
+      window.requestDeleteLog = function (id) {
+        pendingDeleteId = id;
+        document.getElementById("confirmModal").classList.remove("hidden");
+      };
+
+      // HELPER FUNCTIONS
+      function getTodayISO() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      function getCurrentTimeHHMM() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        return `${hours}:${minutes}`;
+      }
+
+      function formatDisplayDate(dateStr) {
+        if (!dateStr) return "";
+        const [y, m, d] = dateStr.split("-");
+        const dateObj = new Date(y, m - 1, d);
+        return dateObj.toLocaleDateString("es-ES", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        });
+      }
+
+      function showToast(message, type = "info") {
+        const container = document.getElementById("toastContainer");
+        const toast = document.createElement("div");
+
+        let badgeClass = "bg-zinc-900 border-zinc-700 text-zinc-200";
+        if (type === "success")
+          badgeClass = "bg-zinc-900 border-emerald-500/50 text-emerald-300";
+        if (type === "error")
+          badgeClass = "bg-zinc-900 border-red-500/50 text-red-300";
+
+        toast.className = `matte-card px-3.5 py-2.5 rounded-xl border ${badgeClass} shadow-xl text-xs font-medium flex items-center gap-2 transition duration-300 opacity-0 transform translate-y-2 pointer-events-auto`;
+        toast.innerHTML = `<span>${message}</span>`;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.remove("opacity-0", "translate-y-2");
+        }, 10);
+
+        setTimeout(() => {
+          toast.classList.add("opacity-0", "translate-y-1");
+          setTimeout(() => toast.remove(), 300);
+        }, 2800);
+      }
+
+      function getAuthErrorMessage(code) {
+        switch (code) {
+          case "auth/invalid-email":
+            return "Correo electrónico inválido";
+          case "auth/user-not-found":
+          case "auth/wrong-password":
+          case "auth/invalid-credential":
+            return "Credenciales incorrectas";
+          case "auth/email-already-in-use":
+            return "Este correo ya está registrado";
+          case "auth/weak-password":
+            return "La contraseña debe tener al menos 6 caracteres";
+          default:
+            return "Error de autenticación";
+        }
+      }
+
+      function escapeHTML(str) {
+        return str.replace(
+          /[&<>'"]/g,
+          (tag) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              "'": "&#39;",
+              '"': "&quot;",
+            })[tag] || tag,
+        );
+      }
+    </script>
+  </body>
+</html>
