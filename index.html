@@ -86,88 +86,89 @@
     </style>
   </head>
   <body
-    class="min-h-screen flex flex-col font-sans text-zinc-200 antialiased pb-20 md:pb-12"
-  >
+    class="bg-[#0a0a0c] min-h-screen flex flex-col font-sans text-zinc-200 antialiased pb-20 md:pb-12 overflow-x-hidden"
+>
     <!-- TOP HEADER -->
     <header
-      class="sticky top-0 z-40 bg-[#0a0a0c]/90 backdrop-blur-md border-b border-zinc-800/80 px-4 lg:px-8 py-3.5"
-    >
-      <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        <!-- Logo & Brand -->
-        <div class="flex items-center gap-3">
-          <div
-            class="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white shadow-sm"
-          >
-            <i class="fa-solid fa-layer-group text-sm"></i>
-          </div>
-          <div>
-            <h1
-              class="font-heading font-bold text-lg text-white tracking-tight flex items-center gap-2"
-            >
-              HabitPulse
-              <span
-                class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 bg-zinc-800/80 px-2 py-0.5 rounded-full border border-zinc-700"
-                >Cloud Sync</span
-              >
-            </h1>
-            <p class="text-xs text-zinc-400">
-              Control de Hábitos Multi-Usuario
-            </p>
-          </div>
-        </div>
-
-        <!-- Month Selector & User Auth Pill -->
-        <div class="flex items-center gap-2 sm:gap-4">
-          <!-- Month Navigator -->
-          <div
-            class="flex items-center bg-zinc-900 rounded-xl p-1 border border-zinc-800"
-          >
-            <button
-              id="prevMonthBtn"
-              class="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition"
-              title="Mes Anterior"
-            >
-              <i class="fa-solid fa-chevron-left text-xs"></i>
-            </button>
-            <span
-              id="currentMonthLabel"
-              class="px-2 sm:px-3 font-heading font-semibold text-xs sm:text-sm text-zinc-200 min-w-[110px] sm:min-w-[130px] text-center"
-            >
-              -- ----
-            </span>
-            <button
-              id="nextMonthBtn"
-              class="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition"
-              title="Mes Siguiente"
-            >
-              <i class="fa-solid fa-chevron-right text-xs"></i>
-            </button>
-          </div>
-
-          <!-- Account / Cloud Status Button -->
-          <button
-            id="userAuthBtn"
-            class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition"
-          >
-            <span
-              id="syncDot"
-              class="w-2 h-2 rounded-full bg-emerald-500"
-            ></span>
-            <span
-              id="userAccountText"
-              class="font-medium max-w-[100px] sm:max-w-[140px] truncate"
-              >Conectando...</span
-            >
-            <i class="fa-solid fa-user-gear text-zinc-400 text-xs"></i>
-          </button>
-        </div>
+  class="sticky top-0 z-40 bg-[#0a0a0c]/90 backdrop-blur-md border-b border-zinc-800/80 px-4 lg:px-8 py-3.5"
+>
+  <!-- Cambiamos a flex-col en móviles y flex-row en PC -->
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4">
+    
+    <!-- Logo & Brand -->
+    <div class="flex items-center gap-3">
+      <div
+        class="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-white shadow-sm shrink-0"
+      >
+        <i class="fa-solid fa-layer-group text-sm"></i>
       </div>
-    </header>
+      <div class="min-w-0">
+        <h1
+          class="font-heading font-bold text-lg text-white tracking-tight flex items-center gap-2 flex-wrap"
+        >
+          HabitPulse
+          <span
+            class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 bg-zinc-800/80 px-2 py-0.5 rounded-full border border-zinc-700 whitespace-nowrap"
+            >Cloud Sync</span
+          >
+        </h1>
+        <p class="text-xs text-zinc-400 truncate">
+          Control de Hábitos Multi-Usuario
+        </p>
+      </div>
+    </div>
+
+    <!-- Month Selector & User Auth Pill -->
+    <!-- En móviles ocupa el 100% del ancho (w-full) y separa los elementos (justify-between) -->
+    <div class="flex items-center justify-between w-full md:w-auto gap-2">
+      <!-- Month Navigator -->
+      <div
+        class="flex items-center bg-zinc-900 rounded-xl p-1 border border-zinc-800 shrink-0"
+      >
+        <button
+          id="prevMonthBtn"
+          class="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition"
+          title="Mes Anterior"
+        >
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+        <span
+          id="currentMonthLabel"
+          class="px-2 font-heading font-semibold text-xs sm:text-sm text-zinc-200 min-w-[100px] text-center"
+        >
+          -- ----
+        </span>
+        <button
+          id="nextMonthBtn"
+          class="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition"
+          title="Mes Siguiente"
+        >
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Account / Cloud Status Button -->
+      <button
+        id="userAuthBtn"
+        class="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition shrink-0 max-w-[130px]"
+      >
+        <span
+          id="syncDot"
+          class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"
+        ></span>
+        <span
+          id="userAccountText"
+          class="font-medium truncate"
+          >Conectando...</span
+        >
+        <i class="fa-solid fa-user-gear text-zinc-400 text-xs shrink-0"></i>
+      </button>
+    </div>
+  </div>
+</header>
 
     <!-- MAIN CONTAINER -->
-    <main
-      class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8"
-    >
+    <main class="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 pb-24 space-y-4 sm:space-y-6">
       <!-- QUICK HABIT CARDS -->
       <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- 1. GIMNASIO CARD -->
