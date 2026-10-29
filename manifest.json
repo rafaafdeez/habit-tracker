@@ -1,16 +1,16 @@
 {
-  "name": "Habit Tracker",
+  "name": "HabitPulse",
   "short_name": "Hábitos",
-  "description": "Registro minimalista de hábitos",
+  "description": "Control de Hábitos Minimalista Multi-Usuario",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0a0c",
   "theme_color": "#0a0a0c",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3209/3209995.png",
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%230a0a0c'><rect width='512' height='512' rx='128' fill='%230a0a0c'/><rect x='16' y='16' width='480' height='480' rx='112' fill='none' stroke='%2327272a' stroke-width='12'/><path d='M120 256h70l35-70 50 140 40-100 25 30h80' fill='none' stroke='%2310b981' stroke-width='32' stroke-linecap='round' stroke-linejoin='round'/></svg>",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ]
