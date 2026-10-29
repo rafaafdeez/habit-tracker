@@ -8,9 +8,9 @@
   "theme_color": "#0a0a0c",
   "icons": [
     {
-      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%230a0a0c'><rect width='512' height='512' rx='128' fill='%230a0a0c'/><rect x='16' y='16' width='480' height='480' rx='112' fill='none' stroke='%2327272a' stroke-width='12'/><path d='M120 256h70l35-70 50 140 40-100 25 30h80' fill='none' stroke='%2310b981' stroke-width='32' stroke-linecap='round' stroke-linejoin='round'/></svg>",
+      "src": "https://img.icons8.com/m_sharp/512/ffffff/activity.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
